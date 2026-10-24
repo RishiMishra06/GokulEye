@@ -1,0 +1,29 @@
+{
+  "accuracy": 1.0,
+  "per_class": {
+    "Buffalo": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 17.0
+    },
+    "Cattle": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 11.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      17,
+      0
+    ],
+    [
+      0,
+      11
+    ]
+  ],
+  "test_images": 28,
+  "backbone": "MobileNetV2 (ImageNet transfer learning)"
+}
