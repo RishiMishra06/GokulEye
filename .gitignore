@@ -1,0 +1,5 @@
+models/*.keras
+data/*.db
+data/uploads/*
+.env
+__pycache__/
