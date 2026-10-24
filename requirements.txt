@@ -1,0 +1,8 @@
+fastapi==0.115.0
+uvicorn[standard]==0.30.6
+python-multipart==0.0.9
+httpx==0.27.2
+numpy
+opencv-python-headless
+tensorflow-cpu==2.16.2
+scikit-learn
