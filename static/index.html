@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GokulEye</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#f3f6f6;--ink:#14262b;--mute:#5b6e72;--line:#d5dfe0;--teal:#0f6b6f;--sun:#e8a317;--red:#b3261e;--amber:#9a6700;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.55 Mukta,system-ui,sans-serif}
+header{background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{max-width:1040px;margin:auto;padding:10px 18px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:23px;letter-spacing:-.3px;margin-right:auto}.logo b{color:var(--teal)}
+nav{display:flex;gap:2px;overflow-x:auto}
+nav button{border:0;background:none;font:inherit;font-weight:600;color:var(--mute);padding:8px 12px;border-radius:8px;cursor:pointer}
+nav button[aria-current=true]{background:var(--teal);color:#fff}
+nav button:focus-visible,.btn:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+main{max-width:1040px;margin:auto;padding:26px 18px 60px}
+h1{font-size:clamp(28px,5vw,44px);line-height:1.1;margin:0 0 6px;letter-spacing:-1px;font-weight:800}
+h2{font-size:22px;margin:0 0 10px}.sub{color:var(--mute);margin:0 0 22px;max-width:60ch}
+section{display:none}section.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.drop{border:2px dashed var(--teal);border-radius:14px;padding:34px 16px;text-align:center;cursor:pointer;background:#f8fbfb}
+.drop img{max-width:100%;max-height:280px;border-radius:10px}
+.btn{border:0;background:var(--teal);color:#fff;font:inherit;font-weight:600;padding:10px 20px;border-radius:10px;cursor:pointer}
+.btn.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.5;cursor:wait}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+.stat b{display:block;font-size:34px;line-height:1.1}.stat span{color:var(--mute);font-size:15px}
+.bigl{font-size:40px;font-weight:800;line-height:1}
+.meter{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}.meter i{display:block;height:100%;background:var(--teal)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:14px;font-weight:600;background:#e3f0f0;color:var(--teal)}
+.pill.moderate{background:#fdf0cf;color:var(--amber)}.pill.urgent{background:#fbe0de;color:var(--red)}
+.err{color:var(--red);font-weight:600;margin-top:10px}.note{color:var(--mute);font-size:15px}
+img.cam{width:100%;border-radius:10px}
+input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;max-width:100%}
+.chat{height:360px;overflow:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}
+.msg{padding:10px 14px;border-radius:12px;max-width:85%;white-space:pre-wrap}
+.msg.u{align-self:flex-end;background:var(--teal);color:#fff}.msg.a{background:#eef3f3}
+.rec{display:flex;gap:12px}.rec img{width:92px;height:92px;object-fit:cover;border-radius:10px}
+.helpline{background:var(--ink);color:#fff;border-radius:14px;padding:18px 20px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.helpline a{background:var(--sun);color:var(--ink);font-weight:800;padding:10px 18px;border-radius:10px;text-decoration:none}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.disc{font-size:14px;color:var(--mute);margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+@media(prefers-reduced-motion:no-preference){.meter i{transition:width .5s}}
+</style>
+</head>
+<body>
+<header><div class="bar">
+  <div class="logo">Gokul<b>Eye</b></div>
+  <nav id="nav">
+    <button data-t="classify" aria-current="true">Classify</button><button data-t="dash">Dashboard</button>
+    <button data-t="skin">Skin check</button><button data-t="chat">Assistant</button>
+    <button data-t="vets">Find a vet</button><button data-t="hist">History</button>
+  </nav>
+</div></header>
+<main>
+<section id="classify" class="on">
+  <h1>Is it cattle or buffalo?</h1>
+  <p class="sub">Upload a clear photo of the whole animal or its head. GokulEye tells you the type, how sure it is, and which parts of the photo it looked at.</p>
+  <div class="grid">
+    <div class="card">
+      <label class="drop" id="drop1"><input id="f1" type="file" accept="image/jpeg,image/png,image/webp" hidden><span id="p1">Choose a photo or drop it here<br><small class="note">JPEG, PNG or WebP, up to 8 MB</small></span></label>
+      <p><button class="btn" id="go1" disabled>Classify animal</button></p><div id="e1" class="err" role="alert"></div>
+    </div>
+    <div class="card" id="r1"><h2>Result</h2><p class="note">Your result will appear here.</p></div>
+  </div>
+</section>
+
+<section id="dash">
+  <h1>Dashboard</h1><p class="sub">Everything classified or screened on this device.</p>
+  <div class="stats" id="stats"></div>
+  <div class="card" id="mcard"></div>
+</section>
+
+<section id="skin">
+  <h1>Skin check</h1>
+  <p class="sub">Photograph a lump, patch or crust. The screening looks for lumpy skin disease, ringworm, warts and mange. It is a first look, not a diagnosis.</p>
+  <div class="grid"><div class="card">
+    <p><select id="animal" aria-label="Animal"><option>Cattle</option><option>Buffalo</option></select></p>
+    <label class="drop"><input id="f2" type="file" accept="image/jpeg,image/png,image/webp" hidden><span id="p2">Choose a skin photo</span></label>
+    <p><button class="btn" id="go2" disabled>Screen skin</button></p><div id="e2" class="err" role="alert"></div>
+  </div><div class="card" id="r2"><h2>Screening result</h2><p class="note">Your result will appear here.</p></div></div>
+</section>
+
+<section id="chat">
+  <h1>Livestock assistant</h1><p class="sub">Ask about symptoms, care and breed traits. For an emergency, call 1962.</p>
+  <div class="card"><div class="chat" id="log"><div class="msg a">Ask me anything about your animal. If you have just classified or screened one, I can see that result.</div></div>
+  <form id="cf" style="display:flex;gap:10px"><input id="q" style="flex:1" placeholder="For example: what are early signs of lumpy skin disease?" aria-label="Question"><button class="btn">Send</button></form><div id="e3" class="err" role="alert"></div></div>
+</section>
+
+<section id="vets">
+  <h1>Find a vet</h1><p class="sub">For emergencies, the government mobile veterinary ambulance is free to call.</p>
+  <div class="helpline"><div><b>Livestock helpline 1962</b><br><span class="note" style="color:#c9d6d8">Government mobile veterinary ambulance</span></div><a href="tel:1962">Call 1962</a></div>
+  <div class="tools"><input id="vq" placeholder="Search clinic, district or service" aria-label="Search"><button class="btn alt" id="gps">Sort by distance from me</button><a class="btn alt" id="osm" target="_blank" rel="noopener" style="text-decoration:none">Search on map</a></div>
+  <div class="grid" id="vlist"></div>
+</section>
+
+<section id="hist">
+  <h1>History</h1><p class="sub">Your past classifications and screenings.</p>
+  <div class="tools"><input id="hq" placeholder="Search tag or result" aria-label="Search"><select id="hk" aria-label="Type"><option value="">All types</option><option value="classification">Classification</option><option value="skin">Skin check</option></select><button class="btn alt" id="exp">Export JSON</button></div>
+  <div class="grid" id="hlist"></div>
+</section>
+<p class="disc">GokulEye gives decision support only. It does not replace a registered veterinarian.</p>
+</main>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+async function api(p,o){const r=await fetch(p,o);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.detail||'Something went wrong. Try again.');return j}
+let ctx='',hist=[],vets=[],pos=null;
+function show(t){$$('section').forEach(s=>s.classList.toggle('on',s.id===t));$$('#nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.t===t));
+ if(t==='dash')loadStats();if(t==='hist')loadHist();if(t==='vets')loadVets();location.hash=t}
+$('#nav').onclick=e=>e.target.dataset.t&&show(e.target.dataset.t);
+function picker(inp,prev,btn){inp.onchange=()=>{const f=inp.files[0];if(!f)return;btn.disabled=false;prev.innerHTML=`<img alt="Selected photo" src="${URL.createObjectURL(f)}">`}}
+const send=async(url,inp,btn,err,extra)=>{const fd=new FormData();fd.append('file',inp.files[0]);for(const k in extra)fd.append(k,extra[k]);
+ btn.disabled=true;err.textContent='';const t=btn.textContent;btn.textContent='Working...';
+ try{return await api(url,{method:'POST',body:fd})}catch(e){err.textContent=e.message}finally{btn.disabled=false;btn.textContent=t}};
+picker($('#f1'),$('#p1'),$('#go1'));picker($('#f2'),$('#p2'),$('#go2'));
+$('#go1').onclick=async()=>{const r=await send('/api/classify',$('#f1'),$('#go1'),$('#e1'));if(!r)return;
+ const pct=(r.confidence*100).toFixed(1);ctx=`Classified as ${r.label} (${pct}% confidence)`;
+ $('#r1').innerHTML=`<h2>Result</h2><div class="bigl">${esc(r.label)}</div><div class="meter"><i style="width:${pct}%"></i></div>
+ <p>${pct}% sure &middot; ${r.latency_ms} ms</p>${r.confidence<.7?'<p class="note">Low confidence. Try a clearer, closer photo.</p>':''}
+ <p class="note">Warm areas show where the model looked.</p><img class="cam" alt="Heatmap of the areas the model used" src="data:image/jpeg;base64,${r.gradcam}">`};
+$('#go2').onclick=async()=>{const r=await send('/api/skin',$('#f2'),$('#go2'),$('#e2'),{animal:$('#animal').value});if(!r)return;
+ ctx=`Skin screening of ${$('#animal').value}: ${r.condition}, risk ${r.risk}`;
+ $('#r2').innerHTML=`<h2>${esc(r.condition)}</h2><p><span class="pill ${esc(r.risk)}">${esc(r.risk)} risk</span></p><p>${esc(r.signs)}</p><p><b>What to do:</b> ${esc(r.advice)}</p>
+ ${r.risk!=='low'?'<p><b>Contact a veterinarian soon.</b> Call 1962 if the animal has fever or the lumps are spreading.</p>':''}`};
+$('#cf').onsubmit=async e=>{e.preventDefault();const q=$('#q').value.trim();if(!q)return;$('#q').value='';$('#e3').textContent='';
+ const add=(c,t)=>{const d=document.createElement('div');d.className='msg '+c;d.textContent=t;$('#log').append(d);$('#log').scrollTop=1e9;return d};
+ add('u',q);const w=add('a','Thinking...');
+ try{w.textContent=(await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:q,context:ctx})})).reply}catch(x){w.remove();$('#e3').textContent=x.message}};
+async function loadStats(){const s=await api('/api/stats'),m=s.model;
+ $('#stats').innerHTML=[['Analyses',s.total],['Cattle',s.cattle],['Buffalo',s.buffalo],['Skin checks',s.skin],['Urgent cases',s.urgent]].map(([l,v])=>`<div class="card stat"><b>${v}</b><span>${l}</span></div>`).join('');
+ $('#mcard').innerHTML=m?`<h2>Model performance</h2><p>${esc(m.backbone)}. Tested on ${m.test_images} photos the model never saw in training.</p><div class="bigl">${(m.accuracy*100).toFixed(1)}%</div><p class="note">Test accuracy</p>
+ <p>${Object.entries(m.per_class).map(([k,v])=>`${esc(k)}: precision ${(v.precision*100).toFixed(0)}%, recall ${(v.recall*100).toFixed(0)}%`).join(' &middot; ')}</p>`:'<h2>Model performance</h2><p class="note">No trained model yet. Train one to see accuracy here.</p>'}
+async function loadHist(){hist=await api('/api/history');drawHist()}
+function drawHist(){const q=$('#hq').value.toLowerCase(),k=$('#hk').value;
+ const rows=hist.filter(r=>(!k||r.kind===k)&&(r.tag+r.label).toLowerCase().includes(q));
+ $('#hlist').innerHTML=rows.map(r=>`<div class="card rec"><img alt="" src="/uploads/${esc(r.image)}"><div><b>${esc(r.label)}</b> <span class="pill ${esc(r.risk)}">${esc(r.risk)}</span><br>
+ <span class="note">${esc(r.tag)} &middot; ${new Date(r.created*1000).toLocaleDateString()} &middot; ${(r.confidence*100).toFixed(0)}%</span><p class="note">${esc(r.note)}</p>
+ <button class="btn alt" data-del="${r.id}">Delete</button></div></div>`).join('')||'<p class="note">Nothing here yet. Classify an animal to start your records.</p>'}
+$('#hq').oninput=$('#hk').onchange=drawHist;
+$('#hlist').onclick=async e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this record?')){await api('/api/history/'+id,{method:'DELETE'});loadHist()}};
+$('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(hist,null,2)],{type:'application/json'}));a.download='gokuleye-records.json';a.click()};
+async function loadVets(){vets=await api('/api/vets'+(pos?`?lat=${pos.lat}&lng=${pos.lng}`:''));drawVets()}
+function drawVets(){const q=$('#vq').value.toLowerCase();
+ $('#vlist').innerHTML=vets.filter(v=>Object.values(v).join(' ').toLowerCase().includes(q)).map(v=>`<div class="card"><b>${esc(v.name)}</b> ${v.open_24x7==='yes'?'<span class="pill">24/7</span>':''}<br>
+ <span class="note">${esc(v.type)} &middot; ${esc(v.address)}${v.km!=null?' &middot; '+v.km+' km':''}</span><p class="note">${esc(v.services)}</p><a class="btn" style="text-decoration:none;display:inline-block" href="tel:${esc(v.phone)}">Call ${esc(v.phone)}</a></div>`).join('')
+ ||'<p class="note">No clinics added yet. Add verified clinics to data/vets.csv, or use the map search above.</p>'}
+$('#vq').oninput=drawVets;
+$('#gps').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};
+ $('#osm').href=`https://www.openstreetmap.org/search?query=veterinary#map=13/${pos.lat}/${pos.lng}`;loadVets()},()=>alert('Location access was blocked. Allow it in your browser to sort by distance.'));
+$('#osm').href='https://www.openstreetmap.org/search?query=veterinary%20clinic';
+if(location.hash.length>1&&$('#'+location.hash.slice(1)))show(location.hash.slice(1));
+</script>
+</body>
+</html>
