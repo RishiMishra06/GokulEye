@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GokulEye</title>
+<link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+:root{--paper:#f3f6f6;--ink:#14262b;--mute:#5b6e72;--line:#d5dfe0;--teal:#0f6b6f;--sun:#e8a317;--red:#b3261e;--amber:#9a6700}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.55 Mukta,system-ui,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+.bar{max-width:1040px;margin:auto;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:23px;margin-right:auto}.logo b{color:var(--teal)}
+nav{display:flex;gap:2px;overflow-x:auto}nav button{border:0;background:none;font:inherit;font-weight:600;color:var(--mute);padding:8px 11px;border-radius:8px;cursor:pointer;white-space:nowrap}
+nav button[aria-current=true]{background:var(--teal);color:#fff}
+:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+main{max-width:1040px;margin:auto;padding:26px 18px 60px}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.1;margin:0 0 6px;letter-spacing:-1px;font-weight:800}h2{font-size:21px;margin:0 0 8px}
+.sub,.note{color:var(--mute)}.sub{margin:0 0 20px;max-width:62ch}.note{font-size:15px}
+section{display:none}section.on{display:block}
+.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
+.drop{display:block;border:2px dashed var(--teal);border-radius:14px;padding:28px 14px;text-align:center;cursor:pointer;background:#f8fbfb}.drop img{max-width:100%;max-height:260px;border-radius:10px}
+.btn{border:0;background:var(--teal);color:#fff;font:inherit;font-weight:600;padding:9px 18px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-block}
+.btn.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.5}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}.stat b{display:block;font-size:32px;line-height:1.1}
+.bigl{font-size:38px;font-weight:800;line-height:1}.meter{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}.meter i{display:block;height:100%;background:var(--teal)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:14px;font-weight:600;background:#e3f0f0;color:var(--teal)}.pill.moderate{background:#fdf0cf;color:var(--amber)}.pill.urgent{background:#fbe0de;color:var(--red)}
+.err{color:var(--red);font-weight:600;margin-top:8px}canvas.cam{width:100%;border-radius:10px}
+input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;max-width:100%}
+.chat{height:340px;overflow:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}.msg{padding:10px 14px;border-radius:12px;max-width:85%;white-space:pre-wrap}.msg.u{align-self:flex-end;background:var(--teal);color:#fff}.msg.a{background:#eef3f3}
+.rec{display:flex;gap:12px}.rec img{width:88px;height:88px;object-fit:cover;border-radius:10px}
+.helpline{background:var(--ink);color:#fff;border-radius:14px;padding:16px 20px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}.helpline a{background:var(--sun);color:var(--ink);font-weight:800;padding:9px 16px;border-radius:10px;text-decoration:none}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
+.tw{overflow-x:auto}.disc{font-size:14px;color:var(--mute);margin-top:28px;border-top:1px solid var(--line);padding-top:12px}
+</style>
+</head>
+<body>
+<header><div class="bar"><div class="logo">Gokul<b>Eye</b></div>
+<nav id="nav"><button data-t="classify" aria-current="true">Classify</button><button data-t="batch">Batch</button><button data-t="skin">Skin check</button><button data-t="chat">Assistant</button><button data-t="dash">Dashboard</button><button data-t="vets">Find a vet</button><button data-t="breeds">Breeds</button><button data-t="hist">History</button></nav></div></header>
+<main>
+<section id="classify" class="on"><h1>Is it cattle or buffalo?</h1>
+<p class="sub">Upload a clear photo of the whole animal or its head. <span id="ms" class="note">Loading model...</span></p>
+<div class="grid"><div class="card"><label class="drop"><input id="f1" type="file" accept="image/*" hidden><span id="p1">Choose a photo<br><small class="note">JPEG, PNG or WebP</small></span></label>
+<p><button class="btn" id="go1" disabled>Classify animal</button></p><div id="e1" class="err" role="alert"></div></div>
+<div class="card" id="r1"><h2>Result</h2><p class="note">Your result will appear here.</p></div></div></section>
+
+<section id="batch"><h1>Batch</h1><p class="sub">Classify many photos at once and download the results as CSV.</p>
+<div class="card"><input id="fb" type="file" accept="image/*" multiple> <button class="btn" id="gob">Classify all</button> <button class="btn alt" id="csvb" disabled>Download CSV</button>
+<div class="err" id="eb" role="alert"></div><div class="tw"><table id="tb"></table></div></div></section>
+
+<section id="skin"><h1>Skin check</h1><p class="sub">Photograph a lump, patch or crust. Screens for lumpy skin disease, ringworm, warts and mange. A first look, not a diagnosis. This photo is sent to the screening service.</p>
+<div class="grid"><div class="card"><p><select id="animal" aria-label="Animal"><option>Cattle</option><option>Buffalo</option></select></p>
+<label class="drop"><input id="f2" type="file" accept="image/*" hidden><span id="p2">Choose a skin photo</span></label><p><button class="btn" id="go2" disabled>Screen skin</button></p><div id="e2" class="err" role="alert"></div></div>
+<div class="card" id="r2"><h2>Screening result</h2><p class="note">Your result will appear here.</p></div></div></section>
+
+<section id="chat"><h1>Livestock assistant</h1><p class="sub">Ask about symptoms, care and breeds. For an emergency, call 1962.</p>
+<div class="card"><div class="chat" id="log"><div class="msg a">Ask me anything about your animal. If you just classified or screened one, I can see that result.</div></div>
+<form id="cf" style="display:flex;gap:10px"><input id="q" style="flex:1" placeholder="What are early signs of lumpy skin disease?" aria-label="Question"><button class="btn">Send</button></form><div id="e3" class="err" role="alert"></div></div></section>
+
+<section id="dash"><h1>Dashboard</h1><p class="sub">Everything classified or screened on this device.</p><div class="stats" id="stats"></div><div class="card" id="mcard"></div></section>
+
+<section id="vets"><h1>Find a vet</h1><p class="sub">For emergencies, the government mobile veterinary ambulance can be called free.</p>
+<div class="helpline"><div><b>Livestock helpline 1962</b></div><a href="tel:1962">Call 1962</a></div>
+<div class="tools"><input id="vq" placeholder="Search clinic, district or service" aria-label="Search"><button class="btn alt" id="gps">Sort by distance</button><a class="btn alt" id="osm" target="_blank" rel="noopener">Search on map</a></div><div class="grid" id="vlist"></div></section>
+
+<section id="breeds"><h1>Breed guide</h1><p class="sub">Common Indian and exotic breeds.</p>
+<div class="tools"><select id="bt" aria-label="Type"><option value="">All</option><option>Cattle</option><option>Buffalo</option></select><input id="bq" placeholder="Search breed" aria-label="Search"></div><div class="card tw"><table id="btab"></table></div></section>
+
+<section id="hist"><h1>History</h1><p class="sub">Saved in this browser only.</p>
+<div class="tools"><input id="hq" placeholder="Search tag or result" aria-label="Search"><select id="hk" aria-label="Type"><option value="">All types</option><option value="classification">Classification</option><option value="skin">Skin check</option></select><button class="btn alt" id="exp">Export JSON</button></div><div class="grid" id="hlist"></div></section>
+<p class="disc">GokulEye gives decision support only. It does not replace a registered veterinarian.</p>
+</main>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let classes=['Buffalo','Cattle'],ctx='',pos=null,vets=[],breeds=[],last=null,batchRows=[];
+const store={get:()=>{try{return JSON.parse(localStorage.getItem('ge_hist')||'[]')}catch{return[]}},set:v=>{try{localStorage.setItem('ge_hist',JSON.stringify(v.slice(0,80)))}catch{}}};
+(async()=>{try{classes=await fetch('model/classes.json').then(r=>r.json());$('#ms').textContent='Ready.'}catch(e){$('#ms').textContent='Model files are missing on the server.'}})();
+function show(t){$$('section').forEach(s=>s.classList.toggle('on',s.id===t));$$('#nav button').forEach(b=>b.setAttribute('aria-current',b.dataset.t===t));
+ ({dash:dash,hist:drawHist,vets:loadVets,breeds:loadBreeds})[t]?.();location.hash=t}
+$('#nav').onclick=e=>e.target.dataset.t&&show(e.target.dataset.t);
+const load=f=>new Promise((ok,no)=>{const i=new Image();i.onload=()=>ok(i);i.onerror=()=>no(new Error('Unsupported image file.'));i.src=URL.createObjectURL(f)});
+function small(img,max){const k=Math.min(1,max/Math.max(img.width,img.height)),c=document.createElement('canvas');c.width=img.width*k;c.height=img.height*k;c.getContext('2d').drawImage(img,0,0,c.width,c.height);return c}
+async function infer(img){return post('/api/classify',{image:small(img,512).toDataURL('image/jpeg',.9).split(',')[1]})}
+function overlay(img,heat){const cv=document.createElement('canvas');cv.className='cam';cv.width=Math.min(img.width,640);cv.height=cv.width*img.height/img.width;const g=cv.getContext('2d');g.drawImage(img,0,0,cv.width,cv.height);
+ const n=Math.sqrt(heat.length),t=document.createElement('canvas');t.width=t.height=n;const d=t.getContext('2d').createImageData(n,n),k=v=>Math.max(0,Math.min(1,v));
+ heat.forEach((v,i)=>{d.data.set([255*k(1.5-Math.abs(4*v-3)),255*k(1.5-Math.abs(4*v-2)),255*k(1.5-Math.abs(4*v-1)),v*170],i*4)});t.getContext('2d').putImageData(d,0,0);g.imageSmoothingEnabled=true;g.drawImage(t,0,0,cv.width,cv.height);return cv}
+function addRec(kind,label,conf,risk,note,img){const h=store.get();h.unshift({id:Date.now(),tag:`GE-${kind.slice(0,3).toUpperCase()}-${String(Date.now()%10000).padStart(4,'0')}`,kind,label,conf,risk,note,thumb:small(img,96).toDataURL('image/jpeg',.7),t:Date.now()});store.set(h)}
+function picker(inp,prev,btn){inp.onchange=()=>{const f=inp.files[0];if(!f)return;btn.disabled=false;prev.innerHTML=`<img alt="Selected photo" src="${URL.createObjectURL(f)}">`}}
+picker($('#f1'),$('#p1'),$('#go1'));picker($('#f2'),$('#p2'),$('#go2'));
+$('#go1').onclick=async()=>{$('#e1').textContent='';try{const img=await load($('#f1').files[0]),r=await infer(img),label=classes[r.c],conf=r.p[r.c],pct=(conf*100).toFixed(1);
+ ctx=`Classified as ${label} (${pct}% confidence)`;last={label,conf,pct,img};addRec('classification',label,conf,'low','',img);
+ $('#r1').innerHTML=`<h2>Result</h2><div class="bigl">${esc(label)}</div><div class="meter"><i style="width:${pct}%"></i></div><p>${pct}% sure</p>${conf<.7?'<p class="note">Low confidence. Try a clearer, closer photo.</p>':''}<p class="note">Warm areas show where the model looked.</p><div id="hm"></div>
+ <p class="tools" style="margin-top:12px"><button class="btn alt" id="pdf">Download PDF report</button><button class="btn alt" id="seeb">See ${esc(label)} breeds</button></p>`;$('#hm').append(overlay(img,r.heat));
+ $('#pdf').onclick=pdf;$('#seeb').onclick=()=>{$('#bt').value=label;show('breeds')}}catch(e){$('#e1').textContent=e.message}};
+function pdf(){const{jsPDF}=window.jspdf,d=new jsPDF();d.setFontSize(20);d.text('GokulEye report',15,20);d.setFontSize(12);d.text(`Result: ${last.label}`,15,32);d.text(`Confidence: ${last.pct}%`,15,40);d.text(`Date: ${new Date().toLocaleString()}`,15,48);
+ d.addImage(small(last.img,600).toDataURL('image/jpeg',.8),'JPEG',15,56,100,100*last.img.height/last.img.width);d.setFontSize(9);d.text('Decision support only. Not a substitute for a registered veterinarian.',15,285);d.save('gokuleye-report.pdf')}
+$('#gob').onclick=async()=>{$('#eb').textContent='';batchRows=[];const fs=[...$('#fb').files];if(!fs.length)return($('#eb').textContent='Choose some photos first.');
+ for(const f of fs){try{const img=await load(f),r=await infer(img);batchRows.push([f.name,classes[r.c],(r.p[r.c]*100).toFixed(1)]);addRec('classification',classes[r.c],r.p[r.c],'low','',img)}catch{batchRows.push([f.name,'Error',''])}
+  $('#tb').innerHTML='<tr><th>File</th><th>Result</th><th>Confidence %</th></tr>'+batchRows.map(r=>`<tr>${r.map(c=>`<td>${esc(c)}</td>`).join('')}</tr>`).join('')}
+ $('#csvb').disabled=false};
+$('#csvb').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['file,result,confidence_percent\n'+batchRows.map(r=>r.map(c=>`"${c}"`).join(',')).join('\n')],{type:'text/csv'}));a.download='gokuleye-batch.csv';a.click()};
+async function post(url,body){const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||'Something went wrong. Try again.');return j}
+$('#go2').onclick=async()=>{$('#e2').textContent='';$('#go2').disabled=true;try{const img=await load($('#f2').files[0]),b64=small(img,768).toDataURL('image/jpeg',.85).split(',')[1],r=await post('/api/skin',{image:b64,animal:$('#animal').value});
+ ctx=`Skin screening of ${$('#animal').value}: ${r.condition}, risk ${r.risk}`;addRec('skin',r.condition,+r.confidence||0,r.risk,r.signs||'',img);
+ $('#r2').innerHTML=`<h2>${esc(r.condition)}</h2><p><span class="pill ${esc(r.risk)}">${esc(r.risk)} risk</span></p><p>${esc(r.signs)}</p><p><b>What to do:</b> ${esc(r.advice)}</p>${r.risk!=='low'?'<p><b>Contact a veterinarian soon.</b> Call 1962 if there is fever or the lumps are spreading.</p>':''}`}catch(e){$('#e2').textContent=e.message}$('#go2').disabled=false};
+$('#cf').onsubmit=async e=>{e.preventDefault();const q=$('#q').value.trim();if(!q)return;$('#q').value='';$('#e3').textContent='';
+ const add=(c,t)=>{const d=document.createElement('div');d.className='msg '+c;d.textContent=t;$('#log').append(d);$('#log').scrollTop=1e9;return d};add('u',q);const w=add('a','Thinking...');
+ try{w.textContent=(await post('/api/chat',{message:q,context:ctx})).reply}catch(x){w.remove();$('#e3').textContent=x.message}};
+function dash(){const h=store.get(),n=l=>h.filter(r=>r.label===l).length;
+ $('#stats').innerHTML=[['Analyses',h.length],['Cattle',n('Cattle')],['Buffalo',n('Buffalo')],['Skin checks',h.filter(r=>r.kind==='skin').length],['Urgent cases',h.filter(r=>r.risk==='urgent').length]].map(([l,v])=>`<div class="card stat"><b>${v}</b><span class="note">${l}</span></div>`).join('');
+ fetch('model/metrics.json').then(r=>r.json()).then(m=>{$('#mcard').innerHTML=`<h2>Model performance</h2><p>${esc(m.backbone)}. Tested on ${m.test_images} photos not used in training.</p><div class="bigl">${(m.accuracy*100).toFixed(1)}%</div><p class="note">Test accuracy. Small test set, so treat it as indicative.</p><p>${Object.entries(m.per_class).map(([k,v])=>`${esc(k)}: precision ${(v.precision*100).toFixed(0)}%, recall ${(v.recall*100).toFixed(0)}%`).join(' &middot; ')}</p>`}).catch(()=>{$('#mcard').innerHTML='<h2>Model performance</h2><p class="note">metrics.json not found.</p>'})}
+function drawHist(){const q=$('#hq').value.toLowerCase(),k=$('#hk').value,rows=store.get().filter(r=>(!k||r.kind===k)&&(r.tag+r.label).toLowerCase().includes(q));
+ $('#hlist').innerHTML=rows.map(r=>`<div class="card rec"><img alt="" src="${r.thumb}"><div><b>${esc(r.label)}</b> <span class="pill ${esc(r.risk)}">${esc(r.risk)}</span><br><span class="note">${esc(r.tag)} &middot; ${new Date(r.t).toLocaleDateString()} &middot; ${(r.conf*100).toFixed(0)}%</span><p class="note">${esc(r.note)}</p><button class="btn alt" data-del="${r.id}">Delete</button></div></div>`).join('')||'<p class="note">Nothing here yet.</p>'}
+$('#hq').oninput=$('#hk').onchange=drawHist;
+$('#hlist').onclick=e=>{const id=e.target.dataset.del;if(id&&confirm('Delete this record?')){store.set(store.get().filter(r=>r.id!=id));drawHist()}};
+$('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(store.get().map(({thumb,...r})=>r),null,2)],{type:'application/json'}));a.download='gokuleye-records.json';a.click()};
+function csv(t){const rows=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}else if(ch=='"')q=true;else if(ch==','){r.push(c);c=''}else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;r.push(c);c='';if(r.some(x=>x))rows.push(r);r=[]}else c+=ch}if(c||r.length){r.push(c);rows.push(r)}const h=rows.shift();return rows.map(x=>Object.fromEntries(h.map((k,i)=>[k.trim(),x[i]||''])))}
+async function loadVets(){if(!vets.length)vets=csv(await(await fetch('vets.csv')).text());drawVets()}
+function drawVets(){const q=$('#vq').value.toLowerCase(),R=Math.PI/180;
+ vets.forEach(v=>{if(pos&&v.lat){const a=(v.lat-pos.lat)*R/2,b=(v.lng-pos.lng)*R/2,h=Math.sin(a)**2+Math.cos(pos.lat*R)*Math.cos(v.lat*R)*Math.sin(b)**2;v.km=+(12742*Math.asin(Math.sqrt(h))).toFixed(1)}});
+ const rows=vets.filter(v=>Object.values(v).join(' ').toLowerCase().includes(q)).sort((a,b)=>(a.km??1e9)-(b.km??1e9));
+ $('#vlist').innerHTML=rows.map(v=>`<div class="card"><b>${esc(v.name)}</b> ${v.open_24x7==='yes'?'<span class="pill">24/7</span>':''}<br><span class="note">${esc(v.type)} &middot; ${esc(v.address)}${v.km!=null?' &middot; '+v.km+' km':''}</span><p class="note">${esc(v.services)}</p><a class="btn" href="tel:${esc(v.phone)}">Call ${esc(v.phone)}</a></div>`).join('')||'<p class="note">No clinics added yet. Add verified clinics to vets.csv, or use the map search.</p>'}
+$('#vq').oninput=drawVets;$('#osm').href='https://www.openstreetmap.org/search?query=veterinary%20clinic';
+$('#gps').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};$('#osm').href=`https://www.openstreetmap.org/search?query=veterinary#map=13/${pos.lat}/${pos.lng}`;drawVets()},()=>alert('Location access was blocked.'));
+async function loadBreeds(){if(!breeds.length)breeds=csv(await(await fetch('breeds.csv')).text());drawBreeds()}
+function drawBreeds(){const t=$('#bt').value,q=$('#bq').value.toLowerCase(),rows=breeds.filter(b=>(!t||b.Type.includes(t))&&(b['Breed Name']+b['Region of Origin (India/World)']).toLowerCase().includes(q));
+ $('#btab').innerHTML='<tr><th>Breed</th><th>Type</th><th>Origin</th><th>Milk L/day</th><th>Traits</th><th>Use</th></tr>'+rows.map(b=>`<tr><td><b>${esc(b['Breed Name'])}</b></td><td>${esc(b.Type)}</td><td>${esc(b['Region of Origin (India/World)'])}</td><td>${esc(b['Avg. Milk Yield (L/day)'])}</td><td>${esc(b['Physical Traits'])}</td><td>${esc(b.Utility)}</td></tr>`).join('')}
+$('#bt').onchange=$('#bq').oninput=drawBreeds;
+if(location.hash.length>1&&$('#'+location.hash.slice(1)))show(location.hash.slice(1));
+</script>
+</body>
+</html>
