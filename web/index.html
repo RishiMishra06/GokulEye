@@ -63,7 +63,7 @@ input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-r
 
 <section id="vets"><h1>Find a vet</h1><p class="sub">For emergencies, the government mobile veterinary ambulance can be called free.</p>
 <div class="helpline"><div><b>Livestock helpline 1962</b></div><a href="tel:1962">Call 1962</a></div>
-<div class="tools"><input id="vq" placeholder="Search clinic, district or service" aria-label="Search"><button class="btn alt" id="gps">Sort by distance</button><a class="btn alt" id="osm" target="_blank" rel="noopener">Search on map</a></div><div class="grid" id="vlist"></div></section>
+<div class="tools"><input id="vq" placeholder="Search clinic, district or service" aria-label="Search"><button class="btn alt" id="gps">Sort by distance</button><a class="btn alt" id="osm" target="_blank" rel="noopener">Search on map</a></div><label class="note"><input type="checkbox" id="lv"> Livestock and government clinics only</label><p class="note" id="vcount"></p><div class="grid" id="vlist"></div><p class="note">Clinic data: &copy; OpenStreetMap contributors (ODbL). Crowd-sourced, so it can be incomplete or out of date. Call first to confirm they treat cattle and buffalo.</p></section>
 
 <section id="breeds"><h1>Breed guide</h1><p class="sub">Common Indian and exotic breeds.</p>
 <div class="tools"><select id="bt" aria-label="Type"><option value="">All</option><option>Cattle</option><option>Buffalo</option></select><input id="bq" placeholder="Search breed" aria-label="Search"></div><div class="card tw"><table id="btab"></table></div></section>
@@ -119,11 +119,13 @@ $('#hlist').onclick=e=>{const id=e.target.dataset.del;if(id&&confirm('Delete thi
 $('#exp').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(store.get().map(({thumb,...r})=>r),null,2)],{type:'application/json'}));a.download='gokuleye-records.json';a.click()};
 function csv(t){const rows=[];let r=[],c='',q=false;for(let i=0;i<t.length;i++){const ch=t[i];if(q){if(ch=='"'){if(t[i+1]=='"'){c+='"';i++}else q=false}else c+=ch}else if(ch=='"')q=true;else if(ch==','){r.push(c);c=''}else if(ch=='\n'||ch=='\r'){if(ch=='\r'&&t[i+1]=='\n')i++;r.push(c);c='';if(r.some(x=>x))rows.push(r);r=[]}else c+=ch}if(c||r.length){r.push(c);rows.push(r)}const h=rows.shift();return rows.map(x=>Object.fromEntries(h.map((k,i)=>[k.trim(),x[i]||''])))}
 async function loadVets(){if(!vets.length)vets=csv(await(await fetch('vets.csv')).text());drawVets()}
-function drawVets(){const q=$('#vq').value.toLowerCase(),R=Math.PI/180;
+function drawVets(){const q=$('#vq').value.toLowerCase().trim(),lv=$('#lv').checked,R=Math.PI/180;
+ if(!pos&&!q){$('#vcount').textContent='Search by city, district or clinic name, or tap "Sort by distance" to see the nearest clinics.';$('#vlist').innerHTML='';return}
  vets.forEach(v=>{if(pos&&v.lat){const a=(v.lat-pos.lat)*R/2,b=(v.lng-pos.lng)*R/2,h=Math.sin(a)**2+Math.cos(pos.lat*R)*Math.cos(v.lat*R)*Math.sin(b)**2;v.km=+(12742*Math.asin(Math.sqrt(h))).toFixed(1)}});
- const rows=vets.filter(v=>Object.values(v).join(' ').toLowerCase().includes(q)).sort((a,b)=>(a.km??1e9)-(b.km??1e9));
- $('#vlist').innerHTML=rows.map(v=>`<div class="card"><b>${esc(v.name)}</b> ${v.open_24x7==='yes'?'<span class="pill">24/7</span>':''}<br><span class="note">${esc(v.type)} &middot; ${esc(v.address)}${v.km!=null?' &middot; '+v.km+' km':''}</span><p class="note">${esc(v.services)}</p><a class="btn" href="tel:${esc(v.phone)}">Call ${esc(v.phone)}</a></div>`).join('')||'<p class="note">No clinics added yet. Add verified clinics to vets.csv, or use the map search.</p>'}
-$('#vq').oninput=drawVets;$('#osm').href='https://www.openstreetmap.org/search?query=veterinary%20clinic';
+ const all=vets.filter(v=>(!lv||v.type.startsWith('Livestock'))&&Object.values(v).join(' ').toLowerCase().includes(q)).sort((a,b)=>(a.km??1e9)-(b.km??1e9)),rows=all.slice(0,40);
+ $('#vcount').textContent=all.length?`Showing ${rows.length} of ${all.length}.`:'';
+ $('#vlist').innerHTML=rows.map(v=>`<div class="card"><b>${esc(v.name)}</b> ${v.open_24x7==='yes'?'<span class="pill">24/7</span>':''}<br><span class="note">${esc(v.type)} &middot; ${esc(v.address)}${v.km!=null?' &middot; '+v.km+' km':''}</span><p class="note">${esc(v.services)}</p>${v.phone?`<a class="btn" href="tel:${esc(v.phone)}">Call ${esc(v.phone)}</a>`:'<span class="note">No phone listed</span>'} <a class="btn alt" target="_blank" rel="noopener" href="https://www.openstreetmap.org/?mlat=${esc(v.lat)}&mlon=${esc(v.lng)}#map=16/${esc(v.lat)}/${esc(v.lng)}">Map</a></div>`).join('')||'<p class="note">No match. Try a different search.</p>'}
+$('#vq').oninput=$('#lv').onchange=drawVets;$('#osm').href='https://www.openstreetmap.org/search?query=veterinary%20clinic';
 $('#gps').onclick=()=>navigator.geolocation.getCurrentPosition(p=>{pos={lat:p.coords.latitude,lng:p.coords.longitude};$('#osm').href=`https://www.openstreetmap.org/search?query=veterinary#map=13/${pos.lat}/${pos.lng}`;drawVets()},()=>alert('Location access was blocked.'));
 async function loadBreeds(){if(!breeds.length)breeds=csv(await(await fetch('breeds.csv')).text());drawBreeds()}
 function drawBreeds(){const t=$('#bt').value,q=$('#bq').value.toLowerCase(),rows=breeds.filter(b=>(!t||b.Type.includes(t))&&(b['Breed Name']+b['Region of Origin (India/World)']).toLowerCase().includes(q));
