@@ -3,48 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0d6b6e">
+<meta name="description" content="GokulEye: image-based cattle vs buffalo classification with explainable heatmaps.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%279%27 fill=%27%230d6b6e%27/%3E%3Ccircle cx=%2716%27 cy=%2716%27 r=%274%27 fill=%27%23e9a416%27/%3E%3C/svg%3E">
 <title>GokulEye</title>
 <link href="https://fonts.googleapis.com/css2?family=Mukta:wght@400;600;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-:root{--paper:#f3f6f6;--ink:#14262b;--mute:#5b6e72;--line:#d5dfe0;--teal:#0f6b6f;--sun:#e8a317;--red:#b3261e;--amber:#9a6700}
-*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.55 Mukta,system-ui,sans-serif}
-header{background:#fff;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.bar{max-width:1040px;margin:auto;padding:10px 18px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
-.logo{font-weight:800;font-size:23px;margin-right:auto}.logo b{color:var(--teal)}
-nav{display:flex;gap:2px;overflow-x:auto}nav button{border:0;background:none;font:inherit;font-weight:600;color:var(--mute);padding:8px 11px;border-radius:8px;cursor:pointer;white-space:nowrap}
-nav button[aria-current=true]{background:var(--teal);color:#fff}
+:root{--paper:#f4f7f6;--ink:#12262b;--mute:#5a6d71;--line:#dbe4e4;--teal:#0d6b6e;--teald:#0a5558;--tint:#e6f2f1;--sun:#e9a416;--red:#b3261e;--amber:#9a6700;--card:#fff;--sh:0 1px 2px rgba(18,38,43,.05),0 10px 28px -14px rgba(18,38,43,.18)}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 Mukta,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+header{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:9}
+.bar{max-width:1080px;margin:auto;padding:10px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:22px;letter-spacing:-.4px;margin-right:auto}.brand b{color:var(--teal)}.mark{width:34px;height:34px;flex:none}
+nav{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;max-width:100%;padding:2px}nav::-webkit-scrollbar{display:none}
+nav button{border:1px solid transparent;background:none;font:inherit;font-weight:600;font-size:15.5px;color:var(--mute);padding:7px 11px;border-radius:99px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+nav button:hover{background:var(--tint);color:var(--teald)}nav button[aria-current=true]{background:var(--teal);color:#fff}
 :focus-visible{outline:3px solid var(--sun);outline-offset:2px}
-main{max-width:1040px;margin:auto;padding:26px 18px 60px}
-h1{font-size:clamp(28px,5vw,42px);line-height:1.1;margin:0 0 6px;letter-spacing:-1px;font-weight:800}h2{font-size:21px;margin:0 0 8px}
-.sub,.note{color:var(--mute)}.sub{margin:0 0 20px;max-width:62ch}.note{font-size:15px}
-section{display:none}section.on{display:block}
-.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px}
-.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))}
-.drop{display:block;border:2px dashed var(--teal);border-radius:14px;padding:28px 14px;text-align:center;cursor:pointer;background:#f8fbfb}.drop img{max-width:100%;max-height:260px;border-radius:10px}
-.btn{border:0;background:var(--teal);color:#fff;font:inherit;font-weight:600;padding:9px 18px;border-radius:10px;cursor:pointer;text-decoration:none;display:inline-block}
-.btn.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn:disabled{opacity:.5}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}.stat b{display:block;font-size:32px;line-height:1.1}
-.bigl{font-size:38px;font-weight:800;line-height:1}.meter{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0}.meter i{display:block;height:100%;background:var(--teal)}
-.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:14px;font-weight:600;background:#e3f0f0;color:var(--teal)}.pill.moderate{background:#fdf0cf;color:var(--amber)}.pill.urgent{background:#fbe0de;color:var(--red)}
-.err{color:var(--red);font-weight:600;margin-top:8px}canvas.cam{width:100%;border-radius:10px}
-input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;max-width:100%}
-.chat{height:340px;overflow:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}.msg{padding:10px 14px;border-radius:12px;max-width:85%;white-space:pre-wrap}.msg.u{align-self:flex-end;background:var(--teal);color:#fff}.msg.a{background:#eef3f3}
-.rec{display:flex;gap:12px}.rec img{width:88px;height:88px;object-fit:cover;border-radius:10px}
-.helpline{background:var(--ink);color:#fff;border-radius:14px;padding:16px 20px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}.helpline a{background:var(--sun);color:var(--ink);font-weight:800;padding:9px 16px;border-radius:10px;text-decoration:none}
-.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}table{width:100%;border-collapse:collapse;font-size:15px}td,th{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}
-.tw{overflow-x:auto}.disc{font-size:14px;color:var(--mute);margin-top:28px;border-top:1px solid var(--line);padding-top:12px}
+main{max-width:1080px;margin:auto;padding:28px 18px 56px}
+h1{text-wrap:balance;font-size:clamp(28px,5.4vw,46px);line-height:1.08;margin:0 0 10px;letter-spacing:-1.2px;font-weight:800}h2{font-size:21px;margin:0 0 8px;font-weight:800}h3{font-size:17px;margin:18px 0 2px;font-weight:700}
+.sub,.note{color:var(--mute)}.sub{margin:0 0 22px;max-width:64ch}.note{font-size:15px}
+section{display:none}section.on{display:block;animation:in .25s ease}@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.hero{background:linear-gradient(135deg,var(--tint),#fff 70%);border:1px solid var(--line);border-radius:22px;padding:26px 24px 22px;margin-bottom:20px}
+.chip{display:block;width:fit-content;font-size:14px;font-weight:600;background:#fff;color:var(--teald);border:1px solid var(--line);border-radius:99px;padding:1px 12px;margin:10px 0 0}
+.steps{display:flex;gap:10px;flex-wrap:wrap;list-style:none;margin:0;padding:0}.steps li{display:flex;align-items:center;gap:8px;font-weight:600;font-size:15px;color:var(--teald)}
+.steps b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--teal);color:#fff;font-size:13px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--sh)}
+.grid{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.drop{display:block;border:2px dashed #9cc5c4;border-radius:16px;padding:30px 14px;text-align:center;cursor:pointer;background:#f8fbfb;transition:border-color .15s,background .15s}.drop:hover{border-color:var(--teal);background:var(--tint)}
+.drop svg{width:38px;height:38px;color:var(--teal);margin-bottom:6px}.drop img{max-width:100%;max-height:270px;border-radius:12px}
+.btn{border:0;background:var(--teal);color:#fff;font:inherit;font-weight:600;padding:10px 20px;border-radius:12px;cursor:pointer;text-decoration:none;display:inline-block;transition:background .15s,transform .05s}
+.btn:hover{background:var(--teald)}.btn:active{transform:scale(.98)}.btn.alt{background:#fff;color:var(--ink);border:1px solid var(--line)}.btn.alt:hover{background:var(--tint)}.btn:disabled{opacity:.55;cursor:wait}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}.stat b{display:block;font-size:36px;line-height:1.1;letter-spacing:-1px}
+.bigl{font-size:44px;font-weight:800;line-height:1.05;letter-spacing:-1.2px;color:var(--teald)}
+.pb{display:grid;grid-template-columns:78px 1fr 56px;gap:10px;align-items:center;font-size:15px;margin-top:6px}.pb b{text-align:right}
+.meter{height:10px;background:var(--line);border-radius:6px;overflow:hidden}.meter i{display:block;height:100%;background:var(--teal);border-radius:6px;transition:width .5s}
+.warn{background:#fdf0cf;color:var(--amber);border-radius:10px;padding:8px 12px;font-weight:600;font-size:15px;margin:12px 0 0}
+.pill{display:inline-block;padding:2px 11px;border-radius:99px;font-size:14px;font-weight:600;background:var(--tint);color:var(--teald)}.pill.moderate{background:#fdf0cf;color:var(--amber)}.pill.urgent{background:#fbe0de;color:var(--red)}
+.err{color:var(--red);font-weight:600;margin-top:10px}canvas.cam{width:100%;border-radius:12px;margin-top:8px}
+.empty{display:grid;place-items:center;align-content:center;gap:6px;min-height:230px;color:var(--mute);text-align:center}.empty svg{width:44px;height:44px;color:#9cc5c4}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:s .7s linear infinite;margin-right:8px;vertical-align:-3px}.spin.big{width:36px;height:36px;border-color:var(--line);border-top-color:var(--teal);margin:0}@keyframes s{to{transform:rotate(360deg)}}
+input,select{font:inherit;padding:10px 13px;border:1px solid var(--line);border-radius:12px;background:#fff;max-width:100%}input:focus,select:focus{border-color:var(--teal)}
+.chat{height:350px;overflow:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:12px}.msg{padding:10px 15px;border-radius:16px;max-width:86%;white-space:pre-wrap}.msg.u{align-self:flex-end;background:var(--teal);color:#fff;border-bottom-right-radius:4px}.msg.a{background:#eef4f4;border-bottom-left-radius:4px}
+.rec{display:flex;gap:12px}.rec img{width:90px;height:90px;object-fit:cover;border-radius:12px}
+.helpline{background:linear-gradient(120deg,#12262b,#173a40);color:#fff;border-radius:18px;padding:18px 22px;display:flex;gap:14px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:16px}.helpline a{background:var(--sun);color:#12262b;font-weight:800;padding:10px 18px;border-radius:12px;text-decoration:none}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}table{width:100%;border-collapse:collapse;font-size:15px}th{font-size:14px;color:var(--mute);font-weight:600}td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}.tw{overflow-x:auto}
+footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:1px solid var(--line);color:var(--mute);font-size:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}footer b{color:var(--ink)}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header><div class="bar"><div class="logo">Gokul<b>Eye</b></div>
+<header><div class="bar"><div class="brand"><svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0d6b6e"/><path d="M5 16c3.5-5.5 7-8 11-8s7.5 2.5 11 8c-3.5 5.5-7 8-11 8S8.5 21.5 5 16z" fill="none" stroke="#fff" stroke-width="2"/><circle cx="16" cy="16" r="3.6" fill="#e9a416"/></svg><span>Gokul<b>Eye</b></span></div>
 <nav id="nav"><button data-t="classify" aria-current="true">Classify</button><button data-t="batch">Batch</button><button data-t="skin">Skin check</button><button data-t="chat">Assistant</button><button data-t="dash">Dashboard</button><button data-t="vets">Find a vet</button><button data-t="breeds">Breeds</button><button data-t="hist">History</button></nav></div></header>
 <main>
-<section id="classify" class="on"><h1>Is it cattle or buffalo?</h1>
-<p class="sub">Upload a clear photo of the whole animal or its head. <span id="ms" class="note">Loading model...</span></p>
-<div class="grid"><div class="card"><label class="drop"><input id="f1" type="file" accept="image/*" hidden><span id="p1">Choose a photo<br><small class="note">JPEG, PNG or WebP</small></span></label>
+<section id="classify" class="on"><div class="hero"><h1>Identify cattle and buffalo from one photo</h1><p class="sub">Upload a clear photo of the animal. GokulEye shows the animal type, how confident it is, and which parts of the image it used to decide.<span id="ms" class="chip">Loading model...</span></p><ol class="steps"><li><b>1</b>Upload a photo</li><li><b>2</b>Get the result</li><li><b>3</b>See the heatmap</li></ol></div>
+<div class="grid"><div class="card"><label class="drop"><input id="f1" type="file" accept="image/*" hidden><span id="p1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><br><b>Choose a photo</b><br><small class="note">JPEG, PNG or WebP. Whole animal or head works best.</small></span></label>
 <p><button class="btn" id="go1" disabled>Classify animal</button></p><div id="e1" class="err" role="alert"></div></div>
-<div class="card" id="r1"><h2>Result</h2><p class="note">Your result will appear here.</p></div></div></section>
+<div class="card" id="r1"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12c2.6-4.4 5.6-6.5 10-6.5S19.4 7.6 22 12c-2.6 4.4-5.6 6.5-10 6.5S4.600 16.400 2 12z"/><circle cx="12" cy="12" r="3"/></svg><p>Your result will appear here.</p></div></div></div></section>
 
 <section id="batch"><h1>Batch</h1><p class="sub">Classify many photos at once and download the results as CSV.</p>
 <div class="card"><input id="fb" type="file" accept="image/*" multiple> <button class="btn" id="gob">Classify all</button> <button class="btn alt" id="csvb" disabled>Download CSV</button>
@@ -52,8 +67,8 @@ input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-r
 
 <section id="skin"><h1>Skin check</h1><p class="sub">Photograph a lump, patch or crust. Screens for lumpy skin disease, ringworm, warts and mange. A first look, not a diagnosis. This photo is sent to the screening service.</p>
 <div class="grid"><div class="card"><p><select id="animal" aria-label="Animal"><option>Cattle</option><option>Buffalo</option></select></p>
-<label class="drop"><input id="f2" type="file" accept="image/*" hidden><span id="p2">Choose a skin photo</span></label><p><button class="btn" id="go2" disabled>Screen skin</button></p><div id="e2" class="err" role="alert"></div></div>
-<div class="card" id="r2"><h2>Screening result</h2><p class="note">Your result will appear here.</p></div></div></section>
+<label class="drop"><input id="f2" type="file" accept="image/*" hidden><span id="p2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0L7 9m5-5 5 5"/><path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><br><b>Choose a skin photo</b><br><small class="note">Close, well lit, in focus</small></span></label><p><button class="btn" id="go2" disabled>Screen skin</button></p><div id="e2" class="err" role="alert"></div></div>
+<div class="card" id="r2"><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12c2.6-4.4 5.6-6.5 10-6.5S19.4 7.6 22 12c-2.6 4.4-5.6 6.5-10 6.5S4.600 16.400 2 12z"/><circle cx="12" cy="12" r="3"/></svg><p>Your screening result will appear here.</p></div></div></div></section>
 
 <section id="chat"><h1>Livestock assistant</h1><p class="sub">Ask about symptoms, care and breeds. For an emergency, call 1962.</p>
 <div class="card"><div class="chat" id="log"><div class="msg a">Ask me anything about your animal. If you just classified or screened one, I can see that result.</div></div>
@@ -70,7 +85,7 @@ input,select{font:inherit;padding:9px 12px;border:1px solid var(--line);border-r
 
 <section id="hist"><h1>History</h1><p class="sub">Saved in this browser only.</p>
 <div class="tools"><input id="hq" placeholder="Search tag or result" aria-label="Search"><select id="hk" aria-label="Type"><option value="">All types</option><option value="classification">Classification</option><option value="skin">Skin check</option></select><button class="btn alt" id="exp">Export JSON</button></div><div class="grid" id="hlist"></div></section>
-<p class="disc">GokulEye gives decision support only. It does not replace a registered veterinarian.</p>
+<footer><span><b>GokulEye</b> &middot; Image-based animal type classification system</span><span>Decision support only. Not a substitute for a registered veterinarian.</span></footer>
 </main>
 <script>
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
@@ -90,11 +105,14 @@ function overlay(img,heat){const cv=document.createElement('canvas');cv.classNam
 function addRec(kind,label,conf,risk,note,img){const h=store.get();h.unshift({id:Date.now(),tag:`GE-${kind.slice(0,3).toUpperCase()}-${String(Date.now()%10000).padStart(4,'0')}`,kind,label,conf,risk,note,thumb:small(img,96).toDataURL('image/jpeg',.7),t:Date.now()});store.set(h)}
 function picker(inp,prev,btn){inp.onchange=()=>{const f=inp.files[0];if(!f)return;btn.disabled=false;prev.innerHTML=`<img alt="Selected photo" src="${URL.createObjectURL(f)}">`}}
 picker($('#f1'),$('#p1'),$('#go1'));picker($('#f2'),$('#p2'),$('#go2'));
-$('#go1').onclick=async()=>{$('#e1').textContent='';try{const img=await load($('#f1').files[0]),r=await infer(img),label=classes[r.c],conf=r.p[r.c],pct=(conf*100).toFixed(1);
+const EMPTY1=$('#r1').innerHTML;
+$('#go1').onclick=async()=>{const b=$('#go1');$('#e1').textContent='';b.disabled=true;b.innerHTML='<span class="spin"></span>Analysing...';$('#r1').innerHTML='<div class="empty"><span class="spin big"></span><p>Analysing your photo...</p></div>';
+ try{const img=await load($('#f1').files[0]),r=await infer(img),label=classes[r.c],conf=r.p[r.c],pct=(conf*100).toFixed(1);
  ctx=`Classified as ${label} (${pct}% confidence)`;last={label,conf,pct,img};addRec('classification',label,conf,'low','',img);
- $('#r1').innerHTML=`<h2>Result</h2><div class="bigl">${esc(label)}</div><div class="meter"><i style="width:${pct}%"></i></div><p>${pct}% sure</p>${conf<.7?'<p class="note">Low confidence. Try a clearer, closer photo.</p>':''}<p class="note">Warm areas show where the model looked.</p><div id="hm"></div>
- <p class="tools" style="margin-top:12px"><button class="btn alt" id="pdf">Download PDF report</button><button class="btn alt" id="seeb">See ${esc(label)} breeds</button></p>`;$('#hm').append(overlay(img,r.heat));
- $('#pdf').onclick=pdf;$('#seeb').onclick=()=>{$('#bt').value=label;show('breeds')}}catch(e){$('#e1').textContent=e.message}};
+ const bars=classes.map((c,k)=>`<div class="pb"><span>${esc(c)}</span><div class="meter"><i style="width:${(r.p[k]*100).toFixed(1)}%"></i></div><b>${(r.p[k]*100).toFixed(1)}%</b></div>`).join('');
+ $('#r1').innerHTML=`<p class="note" style="margin:0">Result</p><div class="bigl">${esc(label)}</div><p style="margin:2px 0 8px">${pct}% confidence</p>${bars}${conf<.7?'<p class="warn">Low confidence. Try a clearer, closer photo of the whole animal.</p>':''}<h3>What the model looked at</h3><p class="note" style="margin:0">Warmer areas influenced the decision most.</p><div id="hm"></div>
+ <div class="tools" style="margin:14px 0 0"><button class="btn alt" id="pdf">Download PDF report</button><button class="btn alt" id="seeb">See ${esc(label)} breeds</button></div>`;$('#hm').append(overlay(img,r.heat));
+ $('#pdf').onclick=pdf;$('#seeb').onclick=()=>{$('#bt').value=label;show('breeds')}}catch(e){$('#e1').textContent=e.message;$('#r1').innerHTML=EMPTY1}finally{b.disabled=false;b.textContent='Classify animal'}};
 function pdf(){const{jsPDF}=window.jspdf,d=new jsPDF();d.setFontSize(20);d.text('GokulEye report',15,20);d.setFontSize(12);d.text(`Result: ${last.label}`,15,32);d.text(`Confidence: ${last.pct}%`,15,40);d.text(`Date: ${new Date().toLocaleString()}`,15,48);
  d.addImage(small(last.img,600).toDataURL('image/jpeg',.8),'JPEG',15,56,100,100*last.img.height/last.img.width);d.setFontSize(9);d.text('Decision support only. Not a substitute for a registered veterinarian.',15,285);d.save('gokuleye-report.pdf')}
 $('#gob').onclick=async()=>{$('#eb').textContent='';batchRows=[];const fs=[...$('#fb').files];if(!fs.length)return($('#eb').textContent='Choose some photos first.');
