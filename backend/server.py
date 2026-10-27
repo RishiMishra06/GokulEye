@@ -75,7 +75,7 @@ def classify(payload: dict, request: Request):
 
 
 NOTICE = ("You give informational decision support to livestock owners in India. You never replace a "
-          "registered veterinarian. For emergencies, tell the user to call the 1962 helpline. Keep answers short.")
+          "registered veterinarian. For emergencies, tell the user to call the 1962 helpline. Keep answers short. Use plain text only, with no markdown symbols.")
 
 
 def ask_llm(prompt: str, image_b64: str | None = None) -> str:
@@ -112,13 +112,17 @@ def skin(payload: dict, request: Request):
     image = str(payload.get("image", ""))
     decode(image)
     lang = " Write the signs and advice fields in simple Hindi (Devanagari script)." if payload.get("lang") == "hi" else ""
-    text = ask_llm(NOTICE + lang + f" Look at this skin photo of a {str(payload.get('animal', 'Cattle'))[:20]}. Screen for lumpy skin disease, "
-                   'ringworm, warts or mange. Reply with JSON only: {"condition": str, "risk": "low|moderate|urgent", '
+    text = ask_llm(NOTICE + lang + f" The user says this is a {str(payload.get('animal', 'Cattle'))[:20]}, but verify it yourself. "
+                   'First decide whether the photo shows the skin or body of a cow or buffalo. Set "valid" to false if it shows any other animal '
+                   '(for example a horse, dog, goat or a person) or no animal, and leave the other fields empty. Otherwise screen for lumpy skin '
+                   'disease, ringworm, warts or mange. Reply with JSON only: {"valid": true, "condition": str, "risk": "low|moderate|urgent", '
                    '"confidence": 0-1, "signs": str, "advice": str}.', image)
     try:
         out = json.loads(re.search(r"\{.*\}", text, re.S).group(0))
     except Exception:
         raise HTTPException(502, "Could not read the screening result. Try a clearer photo.")
+    if out.get("valid") is False or str(out.get("valid")).lower() == "false":
+        raise HTTPException(422, "This photo does not look like a cow or buffalo. Upload a clear skin photo of cattle or buffalo.")
     if out.get("risk") not in ("low", "moderate", "urgent"):
         out["risk"] = "moderate"
     return out
