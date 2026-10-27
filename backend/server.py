@@ -3,7 +3,7 @@ import base64, io, json, os, re, time
 from collections import defaultdict, deque
 from pathlib import Path
 import httpx, numpy as np
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
@@ -126,6 +126,15 @@ def skin(payload: dict, request: Request):
     if out.get("risk") not in ("low", "moderate", "urgent"):
         out["risk"] = "moderate"
     return out
+
+
+@app.get("/.well-known/assetlinks.json")
+def assetlinks():
+    """Digital Asset Links for the Android app. Put the file at web/assetlinks.json."""
+    p = WEB / "assetlinks.json"
+    if not p.exists():
+        raise HTTPException(404, "Not found")
+    return Response(p.read_text(), media_type="application/json")
 
 
 if MODELS.exists():
