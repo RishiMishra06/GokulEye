@@ -52,7 +52,7 @@ input,select{font:inherit;padding:10px 13px;border:1px solid var(--line);border-
 .tools{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}table{width:100%;border-collapse:collapse;font-size:15px}th{font-size:14px;color:var(--mute);font-weight:600}td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left}.tw{overflow-x:auto}
 footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:1px solid var(--line);color:var(--mute);font-size:14px;display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}footer b{color:var(--ink)}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-.top{display:flex;gap:8px}.btn.sm{padding:6px 12px;font-size:15px}[hidden]{display:none!important}.cm td{text-align:center;font-weight:700;min-width:64px}.cm th{text-align:center}.sel{margin:12px 0 0}
+#cf{display:flex;gap:10px;flex-wrap:wrap}#cf #q{flex:1 1 170px;min-width:0}.top{display:flex;gap:8px}.btn.sm{padding:6px 12px;font-size:15px}[hidden]{display:none!important}.cm td{text-align:center;font-weight:700;min-width:64px}.cm th{text-align:center}.sel{margin:12px 0 0}
 </style>
 </head>
 <body>
@@ -75,7 +75,7 @@ footer{max-width:1080px;margin:0 auto;padding:22px 18px 40px;border-top:1px soli
 
 <section id="chat"><h1>Livestock assistant</h1><p class="sub">Ask about symptoms, care and breeds. For an emergency, call 1962.</p>
 <div class="card"><div class="chat" id="log"><div class="msg a">Ask me anything about your animal. If you just classified or screened one, I can see that result.</div></div>
-<form id="cf" style="display:flex;gap:10px"><input id="q" style="flex:1" placeholder="What are early signs of lumpy skin disease?" aria-label="Question"><button type="button" class="btn alt" id="mic">Speak</button><button class="btn">Send</button></form><label class="note"><input type="checkbox" id="tts"> Read replies aloud</label><div id="e3" class="err" role="alert"></div></div></section>
+<form id="cf"><input id="q" style="flex:1" placeholder="What are early signs of lumpy skin disease?" aria-label="Question"><button type="button" class="btn alt" id="mic">Speak</button><button class="btn">Send</button></form><label class="note"><input type="checkbox" id="tts"> Read replies aloud</label><div id="e3" class="err" role="alert"></div></div></section>
 
 <section id="animals"><h1>My animals</h1><p class="sub">Keep a health record for each animal and set your own reminders. Vaccination dates must come from your veterinarian.</p>
 <div class="card" style="margin-bottom:18px"><form id="af" class="tools" style="margin:0"><input id="an" placeholder="Name or tag number" required aria-label="Name or tag number"><select id="at" aria-label="Type"><option>Cattle</option><option>Buffalo</option></select><input id="ano" placeholder="Notes (optional)" aria-label="Notes"><button class="btn">Add animal</button></form></div>
@@ -132,7 +132,7 @@ $('#go2').onclick=async()=>{$('#e2').textContent='';$('#go2').disabled=true;try{
  $('#r2').innerHTML=`<h2>${esc(r.condition)}</h2><p><span class="pill ${esc(r.risk)}">${esc(r.risk)} risk</span></p><p>${esc(r.signs)}</p><p><b>What to do:</b> ${esc(r.advice)}</p>${r.risk!=='low'?'<p><b>Contact a veterinarian soon.</b> Call 1962 if there is fever or the lumps are spreading.</p>':''}`;const wb=document.createElement('button');wb.className='btn alt';wb.textContent='Share on WhatsApp';wb.style.marginTop='10px';wb.onclick=()=>shareWA(`GokulEye skin screening (${$('#animal').value}): ${r.condition}, ${r.risk} risk. Please consult a veterinarian.`);$('#r2').append(wb)}catch(e){$('#e2').textContent=e.message}$('#go2').disabled=false};
 $('#cf').onsubmit=async e=>{e.preventDefault();const q=$('#q').value.trim();if(!q)return;$('#q').value='';$('#e3').textContent='';
  const add=(c,t)=>{const d=document.createElement('div');d.className='msg '+c;d.textContent=t;$('#log').append(d);$('#log').scrollTop=1e9;return d};add('u',q);const w=add('a','Thinking...');
- try{w.textContent=(await post('/api/chat',{message:q,context:ctx,lang})).reply;speak(w.textContent)}catch(x){w.remove();$('#e3').textContent=x.message}};
+ try{const rp=(await post('/api/chat',{message:q,context:ctx,lang})).reply;w.innerHTML=md(rp);speak(rp.replace(/[*#_`]/g,''))}catch(x){w.remove();$('#e3').textContent=x.message}};
 function dash(){const h=store.get(),n=l=>h.filter(r=>r.label===l).length,due=remList().filter(r=>r.d<=7).length;
  $('#stats').innerHTML=[['Analyses',h.length],...classes.map(c=>[c,n(c)]),['Skin checks',h.filter(r=>r.kind==='skin').length],['Urgent cases',h.filter(r=>r.risk==='urgent').length],['Reminders due',due]].map(([l,v])=>`<div class="card stat"><b>${v}</b><span class="note">${esc(l)}</span></div>`).join('');
  const mx=Math.max(1,...classes.map(n));$('#chart').innerHTML='<h2>Classifications by type</h2>'+classes.map(c=>`<div class="pb"><span>${esc(c)}</span><div class="meter"><i style="width:${n(c)/mx*100}%"></i></div><b>${n(c)}</b></div>`).join('');
@@ -176,6 +176,7 @@ $('#alist').onclick=e=>{const d=e.target.dataset;if(d.adel&&confirm('Remove this
  if(d.rdel){e.preventDefault();R.set(R.get().filter(r=>r.id!=d.rdel));drawAnimals()}};
 $('#alist').onsubmit=e=>{e.preventDefault();const f=e.target,a=f.dataset.rf;R.set([...R.get(),{id:Date.now(),animal:a,title:f.t.value.trim(),date:f.d.value}]);drawAnimals()};
 fillSel();
+const md=s=>esc(s).replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>').replace(/(^|\n)[ \t]*[*-][ \t]+/g,'$1\u2022 ').replace(/\*([^*\n]+)\*/g,'<em>$1</em>').replace(/^#{1,6}[ \t]*/gm,'');
 function shareWA(t){window.open('https://wa.me/?text='+encodeURIComponent(t+'\n'+location.origin),'_blank','noopener')}
 function speak(t){if(!$('#tts').checked||!window.speechSynthesis)return;const u=new SpeechSynthesisUtterance(t);u.lang=lang==='hi'?'hi-IN':'en-IN';speechSynthesis.cancel();speechSynthesis.speak(u)}
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
