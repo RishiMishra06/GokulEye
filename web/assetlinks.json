@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.gokuleye.app",
+        "sha256_cert_fingerprints": ["C0:59:AC:52:8B:72:43:BD:03:1F:09:5B:1A:C5:AB:8F:86:7A:23:2A:EF:AE:3B:C2:FD:B9:26:1B:29:9C:F1:48"]
+      }
+    }]
