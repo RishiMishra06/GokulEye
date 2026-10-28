@@ -1,6 +1,6 @@
-# GokulEye
+<div align="center">
 
-*Identify cattle and buffalo from a single photo.*
+<img src="docs/banner.png" alt="GokulEye: identify cattle and buffalo from a single photo" width="100%">
 
 [![Live demo](https://img.shields.io/badge/Live%20demo-gokul--eye.vercel.app-0D6B6E?logo=vercel&logoColor=white)](https://gokul-eye.vercel.app)
 [![Android APK](https://img.shields.io/badge/Download-Android%20APK-3DDC84?logo=android&logoColor=white)](https://github.com/RishiMishra06/GokulEye/releases/latest)
@@ -10,19 +10,23 @@
 [![CI](https://github.com/RishiMishra06/GokulEye/actions/workflows/ci.yml/badge.svg)](https://github.com/RishiMishra06/GokulEye/actions)
 [![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
+**[Open the web app](https://gokul-eye.vercel.app)** &nbsp;|&nbsp; **[Download the Android APK](https://github.com/RishiMishra06/GokulEye/releases/latest)**
+
+</div>
+
 GokulEye is an image-based animal type classification system. Upload a photo and it tells you whether the animal is cattle or buffalo, how confident it is, and which parts of the photo it used to decide. Around the classifier sits a small toolkit for livestock owners: skin screening, a Hindi and English assistant, per-animal health records with reminders, and a vet finder with the national helpline.
 
-**Try it:** [gokul-eye.vercel.app](https://gokul-eye.vercel.app) &nbsp;|&nbsp; **Android app:** [download the APK](https://github.com/RishiMishra06/GokulEye/releases/latest)
+## Screenshots
 
-[![Classify tab with result and heatmap](docs/classify.png)](docs/classify.png) [![Skin check result](docs/skin.png)](docs/skin.png)
+<img src="docs/gallery-1.png" alt="Classify screen, result with Grad-CAM heatmap, Hindi interface and skin check" width="100%">
 
-[![Assistant answering in Hindi](docs/assistant-hindi.png)](docs/assistant-hindi.png) [![Dashboard with confusion matrix](docs/dashboard.png)](docs/dashboard.png)
+<img src="docs/gallery-2.png" alt="Assistant, My animals, dashboard and model performance with confusion matrix" width="100%">
 
-[![My animals with timeline and reminders](docs/animals.png)](docs/animals.png) [![Find a vet](docs/vets.png)](docs/vets.png)
+<img src="docs/gallery-3.png" alt="Find a vet, PDF report and WhatsApp sharing, breed guide and history" width="100%">
 
 ## Contents
 
-[Features](#features) · [How it works](#how-it-works) · [Model performance](#model-performance) · [Architecture](#architecture) · [Android app](#android-app) · [Run locally](#run-locally) · [Train your own model](#train-your-own-model) · [Deploy](#deploy) · [Project structure](#project-structure) · [Tests](#tests) · [Limitations](#limitations) · [Roadmap](#roadmap) · [Author](#author)
+[Screenshots](#screenshots) · [Features](#features) · [How it works](#how-it-works) · [Model performance](#model-performance) · [Architecture](#architecture) · [Android app](#android-app) · [Run locally](#run-locally) · [Train your own model](#train-your-own-model) · [Deploy](#deploy) · [Project structure](#project-structure) · [Tests](#tests) · [Limitations](#limitations) · [Roadmap](#roadmap) · [Author](#author)
 
 ## Features
 
