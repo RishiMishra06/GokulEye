@@ -4,6 +4,7 @@ from collections import defaultdict, deque
 from pathlib import Path
 import httpx, numpy as np
 from fastapi import FastAPI, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
@@ -12,6 +13,11 @@ MODELS, WEB = ROOT / "models", ROOT / "web"
 app = FastAPI(title="GokulEye")
 _it, _head = None, None
 _hits = defaultdict(deque)
+
+
+@app.exception_handler(Exception)
+async def unhandled(request: Request, exc: Exception):
+    return JSONResponse({"detail": "Server error. Please try again in a moment."}, status_code=500)
 
 
 def limit(request: Request, n: int):
@@ -78,22 +84,73 @@ NOTICE = ("You give informational decision support to livestock owners in India.
           "registered veterinarian. For emergencies, tell the user to call the 1962 helpline. Keep answers short. Use plain text only, with no markdown symbols.")
 
 
+GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/{}:generateContent"
+RETRY_CODES = (429, 500, 502, 503, 504)
+
+
+def _post(model, key, parts, think, timeout):
+    cfg = {"maxOutputTokens": 800}
+    if think:
+        cfg["thinkingConfig"] = {"thinkingLevel": "low"}      # faster answers
+    return httpx.post(GEMINI_URL.format(model), headers={"x-goog-api-key": key},
+                      json={"contents": [{"parts": parts}], "generationConfig": cfg}, timeout=timeout)
+
+
+def _text(r):
+    try:
+        parts = r.json()["candidates"][0]["content"]["parts"]
+        return "".join(p.get("text", "") for p in parts).strip()
+    except Exception:
+        return ""
+
+
+def _error(r):
+    try:
+        return r.json()["error"]["message"][:200]
+    except Exception:
+        return (r.text or "")[:200]
+
+
 def ask_llm(prompt: str, image_b64: str | None = None) -> str:
+    """Call the language model with retries and fallback models (the service is sometimes overloaded)."""
     key = os.getenv("LLM_API_KEY")
     if not key:
         raise HTTPException(503, "LLM_API_KEY is not set on the server.")
     parts = [{"text": prompt}]
     if image_b64:
         parts.append({"inline_data": {"mime_type": "image/jpeg", "data": image_b64}})
-    url = f"https://generativelanguage.googleapis.com/v1beta/models/{os.getenv('LLM_MODEL', 'gemini-3.5-flash')}:generateContent"
-    r = httpx.post(url, headers={"x-goog-api-key": key}, json={"contents": [{"parts": parts}]}, timeout=60)
-    if r.status_code != 200:
-        try:
-            msg = r.json()["error"]["message"]
-        except Exception:
-            msg = r.text
-        raise HTTPException(502, f"Language model error {r.status_code}: {msg[:200]}")
-    return r.json()["candidates"][0]["content"]["parts"][0]["text"]
+    models = [os.getenv("LLM_MODEL", "gemini-3.5-flash")] + [
+        m.strip() for m in os.getenv("LLM_FALLBACK_MODELS", "gemini-3.1-flash-lite,gemini-flash-latest").split(",") if m.strip()]
+    deadline, busy, last = time.time() + 40, False, ""
+    for model in models:
+        think = True
+        for attempt in range(2):
+            left = deadline - time.time()
+            if left < 3:
+                break
+            try:
+                r = _post(model, key, parts, think, min(20, left))
+            except httpx.HTTPError:
+                busy = True                                   # timeout or network error: retry, then next model
+                continue
+            if r.status_code == 200:
+                text = _text(r)
+                if text:
+                    return text
+                last = "The model returned an empty answer."
+                break
+            if r.status_code == 400 and think:
+                think = False                                 # this model does not accept the speed option
+                continue
+            last = _error(r)
+            if r.status_code in RETRY_CODES:
+                busy = True
+                time.sleep(attempt + 1)
+                continue
+            break                                             # key, quota or model-name problem: try the next model
+    if busy:
+        raise HTTPException(503, "The language model service is busy right now. Please try again in a few seconds.")
+    raise HTTPException(502, f"Language model error: {last or 'no answer'}")
 
 
 @app.post("/api/chat")
