@@ -60,3 +60,42 @@ def test_skin_accepts_cattle(monkeypatch):
     monkeypatch.setattr(server, "ask_llm", lambda *a, **k: '{"valid": true, "condition": "Healthy", "risk": "low", "confidence": 0.9, "signs": "-", "advice": "-"}')
     r = client.post("/api/skin", json={"image": png_b64(), "animal": "Cattle"})
     assert r.status_code == 200 and r.json()["risk"] == "low"
+
+
+class _Resp:
+    def __init__(self, code, body):
+        self.status_code, self._b, self.text = code, body, str(body)
+
+    def json(self):
+        return self._b
+
+
+def _llm_env(monkeypatch):
+    monkeypatch.setenv("LLM_API_KEY", "k")
+    monkeypatch.setenv("LLM_MODEL", "m1")
+    monkeypatch.setenv("LLM_FALLBACK_MODELS", "m2")
+    monkeypatch.setattr(server.time, "sleep", lambda s: None)
+
+
+def test_llm_falls_back_to_second_model(monkeypatch):
+    _llm_env(monkeypatch)
+    calls = []
+
+    def fake(url, **kw):
+        calls.append(url)
+        if "/m1:" in url:
+            return _Resp(503, {"error": {"message": "busy"}})
+        return _Resp(200, {"candidates": [{"content": {"parts": [{"text": "ok"}]}}]})
+
+    monkeypatch.setattr(server.httpx, "post", fake)
+    assert server.ask_llm("hi") == "ok" and any("/m2:" in c for c in calls)
+
+
+def test_llm_reports_busy_when_every_model_is_overloaded(monkeypatch):
+    _llm_env(monkeypatch)
+    monkeypatch.setattr(server.httpx, "post", lambda url, **kw: _Resp(503, {"error": {"message": "busy"}}))
+    try:
+        server.ask_llm("hi")
+        assert False, "expected an error"
+    except server.HTTPException as e:
+        assert e.status_code == 503 and "busy" in e.detail
